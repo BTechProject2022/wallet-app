@@ -1,0 +1,86 @@
+{
+    "@context": [
+      "https://w3id.org/did/v1",
+      "https://w3id.org/security/v2",
+      "https://w3c-ccg.github.io/vc-json-schemas/context/vc-json-schema-v0.0.jsonld"
+    ],
+    "id": "did:etho:hash(schema)",
+    "description": "Transcript",
+    "type": "object",
+    "properties": [
+      {
+        "emailAddress": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      {
+        "firstName": {
+          "type": "string"
+        }
+      },
+      {
+        "lastName": {
+          "type": "string"
+        }
+      },
+      {
+        "collegeName": {
+          "type": "string"
+        }
+      },
+      {
+        "universityName": {
+          "type": "string"
+        }
+      },
+      {
+        "branch": {
+          "type": "string"
+        }
+      },
+      {
+        "degree": {
+          "type": "string"
+        }
+      },
+      {
+        "CPI": {
+          "type": "string"
+        }
+      },
+      {
+        "birthDate": {
+          "type": "date"
+        }
+      },
+      {
+        "collegeID": {
+          "type": "string"
+        }
+      },
+      {
+        "graduationDate": {
+          "type": "date"
+        }
+      },
+      {
+        "address": {
+          "type": "string"
+        }
+      },
+      {
+        "guardian": {
+          "type": "string"
+        }
+      }
+    ],
+    "required": "aa",
+    "additionalProperties": false,
+    "proof": {
+      "created": "2019-09-27T06:26:11Z",
+      "creator": "ISSUER DID",
+      "signatureValue": "2A7ZF9f9TWMdtgn57Y6dP6RQGs52xg2QdjUESZUuf4J9BUnwwWFNL8vFshQAEQF6ZFBXjYLYNU4hzXNKc3R6y6re",
+      "type": "Ed25519VerificationKey2018"
+    }
+  }
