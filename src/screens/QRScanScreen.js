@@ -4,6 +4,7 @@ import { BarCodeScanner } from 'expo-barcode-scanner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import store from 'react-native-simple-store';
 import walletAPI from "./../api/walletAPI"
+import getCredential from "./../utils/GetCredential"
 
 export default function QRScannerScreen({navigation}) {
 
@@ -24,10 +25,12 @@ export default function QRScannerScreen({navigation}) {
 
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }) => {
+  const handleBarCodeScanned =async ({ type, data }) => {
     setScanned(true);
-    
-    setObjectValue(data).then(()=>{
+    // console.log("HERE");
+    const credential =await callApiForCredentail(JSON.parse(data));
+    // console.log(credential);
+    setObjectValue(credential).then(()=>{
         // console.log("doNE")
         navigation.state.params.setScanned(navigation.state.params.scanned+1);
         navigation.navigate("Issuer");
@@ -35,6 +38,50 @@ export default function QRScannerScreen({navigation}) {
     
     // alert(`Bar code with type ${type} and data ${data} has been scanned!`);
   };
+
+  const getUserDID = async ()=>{
+    return AsyncStorage.getItem('DID').then((res)=>{
+      if(res){
+        return res;
+      }
+      return null;
+    });
+    
+  }
+
+  const callApiForCredentail  =async (QRData)=>{
+    const did =await getUserDID();
+    // console.log(QRData);
+     const apiEndPoint = QRData.url;
+     const studentId= QRData.studentId;
+     const schemaDid= QRData.schemaDid;
+     try{
+        const response = await fetch(apiEndPoint, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userDid: did,
+            studentId: studentId,
+            schemaDid: schemaDid
+          })
+        });
+        const json = await response.json();
+        // console.log(json);
+        const credential =await getCredential(json.credentialDid,did);
+
+        // const credential =await getCredential("did:cred:a91cbd9ac28ed4f6da798057695954732d0b33ff",did);
+        // credential.hash = "did:cred:a91cbd9ac28ed4f6da798057695954732d0b33ff";
+        credential.hash = json.credentialDid;
+        return credential;
+    }catch(error){
+      console.log(error);
+    }
+   
+  }
+
 
   const getCredentialsObject = async () => {
     try {
@@ -46,19 +93,20 @@ export default function QRScannerScreen({navigation}) {
    
   }
 
-  const getSchemaObject = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('Schemas')
-      return jsonValue != null ? JSON.parse(jsonValue) : null
-    } catch(e) {
-        console.log(e);
-    }
+  // const getSchemaObject = async () => {
+  //   try {
+  //     const jsonValue = await AsyncStorage.getItem('Schemas')
+  //     return jsonValue != null ? JSON.parse(jsonValue) : null
+  //   } catch(e) {
+  //       console.log(e);
+  //   }
    
-  }
+  // }
 
   const checkCredential = (credential,curr_credentials) => {
     //   if(credential.id==null || credential.title==null || credential.subtitle==null){
-    if(credential.id==null){
+      // console.log(credential);
+    if(credential.hash==null){
             alert(`Invalid Credential`);
             navigation.navigate("Issuer");
             return false;
@@ -66,10 +114,10 @@ export default function QRScannerScreen({navigation}) {
             if(curr_credentials){
                 for (var i = 0; i < curr_credentials.credentials.length; ++i) {
                 // curr_credentials.credentials.forEach(element => {
-                    if(curr_credentials.credentials[i].id==credential.id){
-                        alert(`Credential ${credential.title} already exists`);
+                    if(curr_credentials.credentials[i].hash==credential.hash){
+                        alert(`Credential ${credential.type} already exists`);
                         // navigation.navigate("Issuer");
-                        console.log("IN FOR LOOP");
+                        // console.log("IN FOR LOOP");
                         return false;
                     }
                 }
@@ -81,15 +129,20 @@ export default function QRScannerScreen({navigation}) {
   }
 
   const setObjectValue = async (data) => {
-    const temp = JSON.parse(data);
-    const responseSchema = await walletAPI.get(`/getSchema/${temp.id}`);
+    // const temp = JSON.parse(data);
+    // const responseSchema = await walletAPI.get(`/getSchema/${temp.id}`);
 
     // console.log(responseSchema.data);
     try {
 
       var curr_credentials =await getCredentialsObject();
     //   console.log(curr_credentials);
-      const value = JSON.parse(data);
+      const temp = (data);
+      const value = {
+        hash: temp.hash,
+        type : temp.type[1],
+        issuanceDate: temp.issuanceDate,
+      }
       if(!checkCredential(value,curr_credentials)){
         // console.log("HERE1");
         // navigation.navigate("Issuer");
@@ -104,10 +157,10 @@ export default function QRScannerScreen({navigation}) {
             await AsyncStorage.setItem('Credentials', jsonValue);
             // await AsyncStorage.setItem('TEMP', "SOME TEMP");
             // const temp =await AsyncStorage.getItem('TEMP');
-            var curr_schema =await getSchemaObject();
-            curr_schema.schemas.push(responseSchema.data);
-            const jsonValue2 = JSON.stringify(curr_schema);
-            await AsyncStorage.setItem('Credentials', jsonValue2);
+            // var curr_schema =await getSchemaObject();
+            // curr_schema.schemas.push(responseSchema.data);
+            // const jsonValue2 = JSON.stringify(curr_schema);
+            // await AsyncStorage.setItem('Credentials', jsonValue2);
 
         }else{
             // Save Credential
@@ -120,12 +173,12 @@ export default function QRScannerScreen({navigation}) {
             // const temp =await getCredentialsObject();
 
             // Save Schema
-            const curr_schemaNew= {
-              schemas : []
-            };
-            curr_schemaNew.schemas.push(responseSchema.data);
-            const jsonValue2 = JSON.stringify(curr_schemaNew);
-            await AsyncStorage.setItem('Schemas', jsonValue2);
+            // const curr_schemaNew= {
+            //   schemas : []
+            // };
+            // curr_schemaNew.schemas.push(responseSchema.data);
+            // const jsonValue2 = JSON.stringify(curr_schemaNew);
+            // await AsyncStorage.setItem('Schemas', jsonValue2);
             // const temp =await getCredentialsObject();
         }  
         } 
@@ -148,7 +201,7 @@ export default function QRScannerScreen({navigation}) {
         onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject}
       />
-      {scanned && <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />}
+      {/* {scanned && <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />} */}
     </View>
   );
 }

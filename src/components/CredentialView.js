@@ -1,12 +1,24 @@
 import React, {useState,useEffect} from 'react';
 import { Text, StyleSheet, Button, View, TouchableOpacity,FlatList } from 'react-native';
 
-const CredentialView = ({properties,object}) => {
+const CredentialView = ({object}) => {
     
+    const [listData,setListData] = useState([]);
   
     useEffect(() => {
         // console.log(properties);
         // Object.keys(obj)
+        const temp =Object.keys(object.credentialSubject);
+        const tempData=[];
+        temp.forEach(element => {
+            const curr = object.credentialSubject[element];
+            tempData.push({
+                [element] : curr
+            })
+        });
+        // console.log(tempData);
+        setListData(tempData);
+        // console.log(Object.keys(object.credentialSubject));
     }, []);
   
     const nameFormatter = (data)=>{
@@ -32,18 +44,19 @@ const CredentialView = ({properties,object}) => {
     
     return (
         <View>
-            <Text style = {styles.textStyle}>ID: {object.credentialSubject['id']}</Text>
-            <Text />
+            {/* <Text style = {styles.textStyle}>ID: {object.credentialSubject['id']}</Text> */}
+            {/* <Text /> */}
             <FlatList
-            data={properties}  
-            keyExtractor= {property => property.key}
+            data={listData}  
+            // data={object.credentialSubject}  
+            keyExtractor= {property => Object.keys(property)[0]}
             renderItem = {({item})=> {
-            // console.log(credential);
+            // console.log(item);
                 return (
                 
                 <View>
                     {/* <Text style = {styles.textStyle}>{(Object.keys(item)[0])}: {object.credentialSubject[Object.keys(item)[0]]}</Text> */}
-                    <Text style = {styles.textStyle}>{item.key}: {object.credentialSubject[item.key]}</Text>
+                    <Text style = {styles.textStyle}>{Object.keys(item)[0]}: {object.credentialSubject[Object.keys(item)[0]]}</Text>
                     <Text />
                 </View>
                 );

@@ -73,7 +73,7 @@ const IssuerScreen = ({navigation}) => {
       // var result= visit(credential,null);
       // console.log("Result="+result);
       // console.log(result);
-      navigation.navigate("DocDisplay",{ type:"Credential", id:credential.id })
+      navigation.navigate("DocDisplay",{ type:"Credential", id:credential.hash })
       // alert(result);
     }
   
@@ -98,7 +98,7 @@ const IssuerScreen = ({navigation}) => {
           verifiableCredentials[0] 
           ? <FlatList
           data={verifiableCredentials}  
-          keyExtractor= {credential => credential.id}
+          keyExtractor= {credential => credential.hash}
           renderItem = {({item})=> {
             // console.log(credential);
               return (
@@ -108,8 +108,8 @@ const IssuerScreen = ({navigation}) => {
                   // style={styles.button}
                   onPress={()=>{onlistItemPress(item)}}
                 >
-                  <Text style = {styles.textStyle}>{item.type[1]}</Text>
-                  {/* <Text style = {styles.subtextStyle}>{item.subtitle}</Text> */}
+                  <Text style = {styles.textStyle}>{item.type}</Text>
+                  <Text style = {styles.subtextStyle}>{item.issuanceDate}</Text>
                 </TouchableOpacity>
               {/* <Text style = {styles.textStyle}>{item.title}</Text>
               <Text style = {styles.subtextStyle}>{item.subtitle}</Text> */}

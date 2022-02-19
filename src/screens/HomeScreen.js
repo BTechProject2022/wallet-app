@@ -4,6 +4,9 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import walletAPI from "./../api/walletAPI"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import visit from './../utils/ObjectIterator'
+import * as CryptoJS  from 'crypto-js';
+// import '../../shim'
+// import crypto from 'crypto'
 // import secp256k1 from 'react-native-secp256k1';
 // import * as secp from "noble-secp256k1";
 // import { RSA } from 'react-native-rsa-native';
@@ -23,6 +26,16 @@ const HomeScreen = ({navigation}) => {
     const [isBiometricSupported, setIsBiometricSupported] = React.useState(false);
 
     useEffect(() => {
+
+      // Encrypt
+      // var ciphertext = CryptoJS.AES.encrypt('my message', 'secret key 123').toString();
+      // console.log(ciphertext);
+      // // Decrypt
+      // var bytes  = CryptoJS.AES.decrypt(ciphertext, 'secret key 123');
+      // var originalText = bytes.toString(CryptoJS.enc.Utf8);
+
+      // console.log(originalText); // 'my message'
+
       (async () => {
         const compatible = await LocalAuthentication.hasHardwareAsync();
         setIsBiometricSupported(compatible);
@@ -39,10 +52,8 @@ const HomeScreen = ({navigation}) => {
           AsyncStorage.getItem('Keys').then((keyResult)=>{
             const jsonValue = JSON.parse(keyResult);
             setKey(jsonValue);
-            // console.log(key);
+            // console.log(jsonValue);
           });
-
-
         }
 
         AsyncStorage.getItem('DID_Document').then((res)=>{
@@ -196,7 +207,7 @@ const HomeScreen = ({navigation}) => {
       : null
     }
       <Button 
-      title="Go to QR Code Screen"
+      title="Issue Credential"
       onPress={()=> {navigation.navigate("Issuer")}}
       />
       <Button 

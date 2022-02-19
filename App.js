@@ -6,6 +6,8 @@ import IssuerScreen from "./src/screens/IssuerScreen"
 import QRScanScreen from "./src/screens/QRScanScreen"
 import DocDisplayScreen from "./src/screens/DocDisplayScreen"
 import DIDDisplayScreen from "./src/screens/DIDDisplayScreen"
+// import { createDrawerNavigator } from '@react-navigation/drawer';
+// import { NavigationContainer } from '@react-navigation/native';
 
 LogBox.ignoreLogs([
   "[react-native-gesture-handler] Seems like you\'re using an old API with gesture components, check out new Gestures system!",
@@ -28,5 +30,17 @@ const navigator = createStackNavigator(
     },
   }
 );
+
+// const Drawer = createDrawerNavigator();
+// export default function App() {
+// return (
+//   <NavigationContainer>
+//   <Drawer.Navigator initialRouteName="Home">
+//   <Drawer.Screen name="Home" component={HomeScreen} />
+//   <Drawer.Screen name="Settings" component={IssuerScreen} />
+//   </Drawer.Navigator>
+//   </NavigationContainer>
+// );
+// }
 
 export default createAppContainer(navigator);

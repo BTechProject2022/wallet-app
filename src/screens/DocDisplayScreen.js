@@ -4,14 +4,13 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import visit from './../utils/ObjectIterator'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import * as schema from './../utils/TransriptSchema.json';
 import CredentialView from '../components/CredentialView';
+import getCredential from "./../utils/GetCredential"
 
 const DocDisplayScreen = ({navigation}) => {
     
     // var schema={};
     const [data, setData] = useState({});
-    const [schema, setSchema] = useState({});
   
     useEffect(() => {
       
@@ -30,32 +29,39 @@ const DocDisplayScreen = ({navigation}) => {
       //       }
       //     });
       // }else{
-        AsyncStorage.getItem('Credentials').then(async (res)=>{
-          if(res){
-            // console.log(schema);
-            const temp = JSON.parse(res);
-            for(var i=0;i<temp.credentials.length;i=i+1){
-              if(temp.credentials[i].id===navigation.state.params.id){
-                // var result= visit(temp.credentials[i],null);
-                AsyncStorage.getItem('Schemas').then(async (res2)=>{
-                  if(res2){
-                    // console.log(schema);
-                    const temp2 = JSON.parse(res2);
-                    setSchema(temp2.schemas[i]);
-                    // console.log(schema);
-                  }
-                });
-                setData(temp.credentials[i]);
-                break;
-              }
-            }
-            // console.log(res);
-          } else {
-            alert("DID Document not Found");
-          }
-        });
+        // AsyncStorage.getItem('Credentials').then(async (res)=>{
+        //   if(res){
+        //     // console.log(schema);
+        //     const temp = JSON.parse(res);
+        //     for(var i=0;i<temp.credentials.length;i=i+1){
+        //       if(temp.credentials[i].id===navigation.state.params.id){
+        //         // var result= visit(temp.credentials[i],null);
+        //         // AsyncStorage.getItem('Schemas').then(async (res2)=>{
+        //         //   if(res2){
+        //         //     // console.log(schema);
+        //         //     const temp2 = JSON.parse(res2);
+        //         //     setSchema(temp2.schemas[i]);
+        //         //     // console.log(schema);
+        //         //   }
+        //         // });
+        //         setData(temp.credentials[i]);
+        //         break;
+        //       }
+        //     }
+        //     // console.log(res);
+        //   } else {
+        //     alert("DID Document not Found");
+        //   }
+        // });
       // }
-
+      (async () => {
+        AsyncStorage.getItem('DID').then(async (res)=>{
+          const credential = await getCredential(navigation.state.params.id,res);
+          setData(credential);
+        });
+      })();
+      
+      
     }, []);
   
     const isEmptyObject= (obj)=> {
@@ -73,9 +79,9 @@ const DocDisplayScreen = ({navigation}) => {
               ? <View> 
                 <Text style={styles.title}>Title: {data.type[1]}</Text>
                 <Text />
-                <Text style={styles.title}>Issuer: {data.issuer}</Text>
+                <Text style={styles.subTitle}>Issuer: {data.issuerDID}</Text>
                 <Text />
-                <CredentialView properties={schema.properties} object={data}/>
+                <CredentialView object={data}/>
               </View>
               : null
             }
@@ -91,6 +97,9 @@ const DocDisplayScreen = ({navigation}) => {
 const styles = StyleSheet.create({
     title: {
       fontSize: 20,
+    },
+    subTitle: {
+      fontSize: 17,
     },
     container: {
         margin:5,
