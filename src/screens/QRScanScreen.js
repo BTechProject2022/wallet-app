@@ -11,6 +11,7 @@ export default function QRScannerScreen({navigation}) {
 //   console.log(navigation.state.params);
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
+  const [userDid, setUserDid] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -28,20 +29,59 @@ export default function QRScannerScreen({navigation}) {
   const handleBarCodeScanned =async ({ type, data }) => {
     setScanned(true);
     // console.log("HERE");
-    const credential =await callApiForCredentail(JSON.parse(data));
-    // console.log(credential);
-    setObjectValue(credential).then(()=>{
-        // console.log("doNE")
-        navigation.state.params.setScanned(navigation.state.params.scanned+1);
-        navigation.navigate("Issuer");
-    })
+
+    if(navigation.state.params.type==='issuer'){
+      const credential =await callApiForCredentail(JSON.parse(data));
+      // console.log(credential);
+      setObjectValue(credential).then(()=>{
+          // console.log("doNE")
+          navigation.state.params.setScanned(navigation.state.params.scanned+1);
+          navigation.navigate("Issuer");
+      })
+
+    }else if(navigation.state.params.type==='verifier'){
+
+      
+
+      const did =await getUserDID();
+      const QRData = JSON.parse(data);
+
+      navigation.navigate("DocSelect",{ QRData:QRData, did:did})
+      // const apiEndPoint = QRData.apiLink;
+      // const response = await fetch(apiEndPoint, {
+      //   method: 'POST',
+      //   headers: {
+      //     Accept: 'application/json',
+      //     'Content-Type': 'application/json'
+      //   },
+      //   body: JSON.stringify({
+      //     userDid: did,
+      //     userId: QRData.uid,
+      //     recieverDid: QRData.recieverDid,
+      //     documentDid: selectedDocumentDid,
+      //     hash: documentHash,
+      //     sign:documentSign
+      //   })
+      // });
+      // const json = await response.json();
+
+
+      console.log("HERE");
+    }
+    
     
     // alert(`Bar code with type ${type} and data ${data} has been scanned!`);
   };
 
   const getUserDID = async ()=>{
+
+    if(userDid!==""){
+      return userDid;
+    }
+
     return AsyncStorage.getItem('DID').then((res)=>{
       if(res){
+        setUserDid(res);
         return res;
       }
       return null;
@@ -138,6 +178,7 @@ export default function QRScannerScreen({navigation}) {
       var curr_credentials =await getCredentialsObject();
     //   console.log(curr_credentials);
       const temp = (data);
+      console.log(data);
       const value = {
         hash: temp.hash,
         type : temp.type[1],

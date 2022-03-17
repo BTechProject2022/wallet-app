@@ -6,6 +6,8 @@ import IssuerScreen from "./src/screens/IssuerScreen"
 import QRScanScreen from "./src/screens/QRScanScreen"
 import DocDisplayScreen from "./src/screens/DocDisplayScreen"
 import DIDDisplayScreen from "./src/screens/DIDDisplayScreen"
+import VerifierScreen from "./src/screens/VerifierScreen"
+import DocSelectScreen from "./src/screens/DocSelectScreen"
 // import { createDrawerNavigator } from '@react-navigation/drawer';
 // import { NavigationContainer } from '@react-navigation/native';
 
@@ -19,14 +21,16 @@ const navigator = createStackNavigator(
   {
     Home: HomeScreen,
     Issuer: IssuerScreen,
+    Verifier: VerifierScreen,
     QRScan: QRScanScreen,
     DocDisplay: DocDisplayScreen,
-    DIDDisplay: DIDDisplayScreen
+    DIDDisplay: DIDDisplayScreen,
+    DocSelect: DocSelectScreen
   },
   {
     initialRouteName: "Home",
     defaultNavigationOptions: {
-      title: "App",
+      title: "Decentralized Identity",
     },
   }
 );

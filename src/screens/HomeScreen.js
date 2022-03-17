@@ -1,10 +1,12 @@
 import React, {useState,useEffect} from 'react';
-import { Text, StyleSheet, Button, View, TouchableOpacity,Alert } from 'react-native';
+import { Text, StyleSheet,Button, View, TouchableOpacity,Alert,ScrollView } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import walletAPI from "./../api/walletAPI"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import visit from './../utils/ObjectIterator'
 import * as CryptoJS  from 'crypto-js';
+import { Avatar, Card, Title, Paragraph } from 'react-native-paper';
+// import { ScrollView } from 'react-native-gesture-handler';
 // import '../../shim'
 // import crypto from 'crypto'
 // import secp256k1 from 'react-native-secp256k1';
@@ -14,6 +16,9 @@ import * as CryptoJS  from 'crypto-js';
 // import * as secp from "@noble/secp256k1";
 // import crypto from 'crypto';
 // import * as secp256k1 from '@transmute/did-key-secp256k1';
+// import DefaultImage from './../../assets/icon.png';
+
+// const DEFAULT_IMAGE = Image.resolveAssetSource(DefaultImage).uri;
 
 const HomeScreen = ({navigation}) => {
 
@@ -191,30 +196,66 @@ const HomeScreen = ({navigation}) => {
 
   // console.log(props)
   return (
-    <View> 
+    <ScrollView> 
       {isEmptyObject(key) ? 
-        <Button 
-        title="Create DID"
-        onPress={()=> {createDid()}}
-        />
+        // <Button 
+        // title="Create DID"
+        // onPress={()=> {createDid()}}
+        // />
+        <Card style={styles.cardStyle} onPress={()=> {createDid()}}>
+        <Card.Cover style={styles.imageStyle}  source={require('./../../assets/cards/didIssue.png') } />
+        <Card.Content>
+          <Title>Get Did</Title>
+          <Paragraph>Issue a did and did document for youself which will help you identity yourself to others</Paragraph>
+        </Card.Content>
+      </Card>
         : null
       }
     { !isEmptyObject(key) ? 
-      <Button 
-      title="View DID Document"
-      onPress={()=> {getDidDocument()}}
-      />
-      : null
-    }
-      <Button 
+      // <Button 
+      // title="View DID Document"
+      // onPress={()=> {getDidDocument()}}
+      // />
+      <View>
+      <Card style={styles.cardStyle} onPress={()=> {getDidDocument()}}>
+        <Card.Cover style={styles.imageStyle}  source={require('./../../assets/cards/did.png') } />
+        <Card.Content>
+          <Title>View Did Document</Title>
+          <Paragraph>A set of data that describes a Decentralized Identifier i.e. you</Paragraph>
+        </Card.Content>
+      </Card>
+      
+    
+      {/* <Button 
       title="Issue Credential"
       onPress={()=> {navigation.navigate("Issuer")}}
-      />
+      /> */}
+        <Card style={styles.cardStyle} onPress={()=> {navigation.navigate("Issuer")}} mode='outlined'>
+          <Card.Cover style={styles.imageStyle}  source={require('./../../assets/cards/issuer.png') } />
+          <Card.Content>
+            <Title>Get Credential</Title>
+            <Paragraph>Get credentials from Issuer by scanning the QR code from the Isser's website</Paragraph>
+          </Card.Content>
+        </Card>
+        {/* <Button 
+        title="Send Credential"
+        onPress={()=> {navigation.navigate("Verifier")}}
+        /> */}
+        <Card style={styles.cardStyle} onPress={()=> {navigation.navigate("Verifier")}}>
+          <Card.Cover style={styles.imageStyle}  source={require('./../../assets/cards/verifier.png') } />
+          <Card.Content>
+            <Title>Send Credential</Title>
+            <Paragraph>Send credetial to the verifier by scanning the QR code present on the Verifier website and selecting the credential you want to share</Paragraph>
+          </Card.Content>
+        </Card>
+      </View>
+      : null
+    }
       <Button 
       title="Clear Data"
       onPress={()=> {AsyncStorage.clear()}}
       />
-    </View>
+    </ScrollView>
   );
 };
 
@@ -222,6 +263,16 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 30,
   },
+  cardStyle:{
+    margin: 10,
+    borderColor: 'black',
+    borderWidth: 1.5,
+  },
+  imageStyle:{
+    width: null,
+    resizeMode: 'contain',
+    height: 150
+  }
 });
 
 export default HomeScreen;

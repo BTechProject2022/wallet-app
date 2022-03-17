@@ -7,7 +7,7 @@ const getCredential= async (did,userDid)=>{
 
     let credential;
     try {
-        const hash =  sha256("userDid").toString();
+        const hash =  sha256(userDid).toString();
         // console.log("Hash="+hash);
         const keys = await AsyncStorage.getItem('Keys');
         const keysObj=JSON.parse(keys);
@@ -17,11 +17,14 @@ const getCredential= async (did,userDid)=>{
             privateKey: keysObj.PrivateKey,
         });
         // console.log(resp.data);
-        const response =  await walletAPI.post("/getCredential",{
-            credDID: did,
-            ownerDID: userDid,
-            hash: hash,
-            sign: resp.data.sign
+        const response =  await walletAPI.get("/getCredential",{
+            params :{
+                credDID: did,
+                ownerDID: userDid,
+                hash: hash,
+                sign: resp.data.sign,
+                did: userDid
+            },
         });
         // console.log(response.data);
         credential= response.data;

@@ -6,6 +6,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 // import QRScanner from './../components/QRScanner'
 import visit from './../utils/ObjectIterator'
+import {
+  ListItem,
+  Avatar,
+  Button as Button_native
+} from 'react-native-elements';
+import { MaterialIcons  } from '@expo/vector-icons'; 
 
 const IssuerScreen = ({navigation}) => {
     
@@ -65,7 +71,7 @@ const IssuerScreen = ({navigation}) => {
 
 
     const openQRScanner = ()=>{
-      navigation.navigate("QRScan",{ setScanned:setScanned, scanned:scanned })
+      navigation.navigate("QRScan",{ setScanned:setScanned, scanned:scanned ,type:'issuer'})
     }
 
     const onlistItemPress = (credential)=>{
@@ -87,53 +93,67 @@ const IssuerScreen = ({navigation}) => {
   
     return (
       <View style={styles.container}>
-        
-         <Button 
-            title="Scan QR Code"
-            onPress={()=> {
-               openQRScanner();
-            }}
-          />  
+          <View style={styles.button_Container}>
+          <Button_native
+                title="Scan QR Code"
+                onPress={()=> {
+                  openQRScanner();
+                }}
+                icon={scanIcon}
+               
+                iconContainerStyle={{ marginRight: 10 }}
+                buttonStyle={{
+                  backgroundColor: 'rgba(78, 116, 289, 1)',
+                  borderRadius: 3,
+                  alignSelf: 'stretch',
+                }}
+                containerStyle={{
+                  // width: 200,
+                  flex: 1,
+                  marginHorizontal: 10,
+                  marginVertical: 10,
+                }}
+            />
+          </View>
+        <Text style={styles.titleStyle}>Previously Issued Credentials</Text>
         {
-          verifiableCredentials[0] 
-          ? <FlatList
-          data={verifiableCredentials}  
-          keyExtractor= {credential => credential.hash}
-          renderItem = {({item})=> {
-            // console.log(credential);
-              return (
-                
-              <View>
-                <TouchableOpacity
-                  // style={styles.button}
-                  onPress={()=>{onlistItemPress(item)}}
-                >
-                  <Text style = {styles.textStyle}>{item.type}</Text>
-                  <Text style = {styles.subtextStyle}>{item.issuanceDate}</Text>
-                </TouchableOpacity>
-              {/* <Text style = {styles.textStyle}>{item.title}</Text>
-              <Text style = {styles.subtextStyle}>{item.subtitle}</Text> */}
-              {/* <Text style = {styles.textStyle}></Text> */}
-              </View>
-              );
-        }}
-        /> 
-          : null
+          verifiableCredentials.map((l, i) => (
+            <ListItem key={i} onPress={()=>{onlistItemPress(l)}} bottomDivider style={styles.listItemStyle}>
+              <Avatar source={require('./../../assets/documentIcon.png')} />
+              <ListItem.Content>
+                <ListItem.Title>{l.type}</ListItem.Title>
+                <ListItem.Subtitle>{l.issuanceDate}</ListItem.Subtitle>
+              </ListItem.Content>
+            </ListItem>
+          ))
         }
-                 
-        {/* { scanned ? <QRScanner setScanned={setScanned} setData={setData}/> : null }
-        
-        { data!= "" ? <Text>{data}</Text> : null } */}
-        {/* {scanned && <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />} */}
       </View>
     );
 
 
 }
 
+const scanIcon=()=>{
+  // return <ScanOutlined />
+  return <MaterialIcons name="qr-code-scanner" size={24} color="white" style={styles.iconStyle}/>
+}
+
 const styles = StyleSheet.create({
     text: {
       fontSize: 30,
+    },
+    titleStyle: {
+      fontSize: 20,
+      marginLeft:5,
+      marginTop: 10
+    },
+    iconStyle: {
+      marginRight:10
+    },
+    listItemStyle: {
+      margin: 5,
+      borderWidth: 2,
+      borderRadius: 1.5,
     },
     textStyle: {
       paddingTop: 10,
@@ -146,8 +166,15 @@ const styles = StyleSheet.create({
       fontSize: 10,
     },
     container: {
-        flex: 1,
+        // flex: 1,
         flexDirection: 'column',
+        // justifyContent: 'center',
+      },
+    button_Container: {
+        // flex: 1,
+        // borderWidth: 10,
+        alignSelf: 'stretch',
+        flexDirection: 'row',
         justifyContent: 'center',
       },
   });

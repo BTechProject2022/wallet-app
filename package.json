@@ -10,6 +10,7 @@
     "eject": "expo eject"
   },
   "dependencies": {
+    "@ant-design/icons": "^4.7.0",
     "@react-native-async-storage/async-storage": "^1.15.17",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-navigation/drawer": "^6.3.1",
@@ -43,12 +44,16 @@
     "react-dom": "17.0.1",
     "react-native": "0.64.3",
     "react-native-crypto": "^2.2.0",
+    "react-native-dialog": "^9.2.1",
+    "react-native-elements": "^3.4.2",
+    "react-native-gesture-handler": "~2.1.0",
     "react-native-level-fs": "^3.0.0",
     "react-native-os": "^1.0.1",
+    "react-native-paper": "^4.11.2",
     "react-native-randombytes": "^3.6.1",
     "react-native-reanimated": "~2.3.1",
     "react-native-rsa-native": "^2.0.5",
-    "react-native-safe-area-context": "^3.3.2",
+    "react-native-safe-area-context": "^3.4.1",
     "react-native-screens": "~3.10.1",
     "react-native-simple-store": "^2.0.2",
     "react-native-tcp": "^3.2.1",
@@ -63,8 +68,7 @@
     "tty-browserify": "^0.0.0",
     "url": "^0.10.3",
     "util": "^0.10.4",
-    "vm-browserify": "^0.0.4",
-    "react-native-gesture-handler": "~2.1.0"
+    "vm-browserify": "^0.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
