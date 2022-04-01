@@ -8,6 +8,12 @@ import { BarCodeScanner } from 'expo-barcode-scanner';
 import visit from '../utils/ObjectIterator'
 import getCredential from "./../utils/GetCredential"
 import sha256 from 'crypto-js/sha256';
+import {
+  ListItem,
+  Avatar,
+  Button as Button_native
+} from 'react-native-elements';
+import { MaterialIcons  } from '@expo/vector-icons'; 
 
 const DocSelectScreen = ({navigation}) => {
     
@@ -43,6 +49,8 @@ const DocSelectScreen = ({navigation}) => {
 
     const getCredentialsObject = async () => {
       try {
+        console.log("PARAMS");
+        console.log(navigation.state.params);
         const jsonValue = await AsyncStorage.getItem('Credentials')
         return jsonValue != null ? JSON.parse(jsonValue) : null
       } catch(e) {
@@ -52,10 +60,12 @@ const DocSelectScreen = ({navigation}) => {
     }
 
     useEffect(() => {
+      
       (async () => {
         try {
           const temp =await getCredentialsObject();
           if(temp){
+            console.log(temp.credentials);
             setVerifiableCredentials(temp.credentials);
           }
         } catch(e) {
@@ -113,6 +123,7 @@ const DocSelectScreen = ({navigation}) => {
           Type: credential.type,
           CredentialDID: credential.hash,
           Access: true,
+          RecieverName: credential.issuerName,
         };
 
         if(history){
@@ -134,7 +145,7 @@ const DocSelectScreen = ({navigation}) => {
       }else{
         alert(`Credential couldn't be shared`);
       }
-
+      navigation.state.params.setScanned(navigation.state.params.scanned+1);
       navigation.navigate("Verifier");
 
     }
@@ -144,7 +155,7 @@ const DocSelectScreen = ({navigation}) => {
                   for (var i = 0; i < curr_credentials.shareHistory.length; ++i) {
                   // curr_credentials.credentials.forEach(element => {
                       if(curr_credentials.shareHistory[i].Reciever==value.Reciever && curr_credentials.shareHistory[i].Type==value.Type){
-                          alert(`Credential ${value.type} is already shared with ${value.Reciever}`);
+                          alert(`Credential ${value.Type} is already shared with ${value.RecieverName}`);
                           // navigation.navigate("Issuer");
                           // console.log("IN FOR LOOP");
                           return false;
@@ -177,32 +188,19 @@ const DocSelectScreen = ({navigation}) => {
     return (
       <View style={styles.container}>
         
-        <Text style = {styles.textStyle}>Click on the document you want to share</Text> 
+       
+        <Text style={styles.titleStyle}>Click on the document you want to share</Text>
         {
-          verifiableCredentials[0] 
-          ? <FlatList
-          data={verifiableCredentials}  
-          keyExtractor= {credential => credential.hash}
-          renderItem = {({item})=> {
-            // console.log(credential);
-              return (
-                
-              <View>
-                <TouchableOpacity
-                  // style={styles.button}
-                  onPress={()=>{onlistItemPress(item)}}
-                >
-                  <Text style = {styles.textStyle}>{item.type}</Text>
-                  <Text style = {styles.subtextStyle}>{item.issuanceDate}</Text>
-                </TouchableOpacity>
-              {/* <Text style = {styles.textStyle}>{item.title}</Text>
-              <Text style = {styles.subtextStyle}>{item.subtitle}</Text> */}
-              {/* <Text style = {styles.textStyle}></Text> */}
-              </View>
-              );
-        }}
-        /> 
-          : null
+          verifiableCredentials.map((l, i) => (
+            <ListItem key={i} onPress={()=>{onlistItemPress(l)}} bottomDivider style={styles.listItemStyle}>
+              <Avatar source={require('./../../assets/documentIcon.png')} />
+              <ListItem.Content>
+                <ListItem.Title>{l.type}</ListItem.Title>
+                <ListItem.Subtitle>Issued By: {l.issuerName}</ListItem.Subtitle>
+                <ListItem.Subtitle>{l.issuanceDate}</ListItem.Subtitle>
+              </ListItem.Content>
+            </ListItem>
+          ))
         }
                  
         {/* { scanned ? <QRScanner setScanned={setScanned} setData={setData}/> : null }
@@ -229,10 +227,15 @@ const styles = StyleSheet.create({
       paddingLeft: 10,
       fontSize: 10,
     },
+    titleStyle: {
+      fontSize: 17,
+      marginLeft:5,
+      marginTop: 10
+    },
     container: {
         flex: 1,
         flexDirection: 'column',
-        justifyContent: 'center',
+        // justifyContent: 'center',
       },
   });
   

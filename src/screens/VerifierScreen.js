@@ -36,7 +36,7 @@ const VerifierScreen = ({navigation}) => {
         }
          LocalAuthentication.authenticateAsync(LocalAuthenticationOptions).then(async result=>{
             if(result.success){
-            
+    
             }else{
               Alert.alert(
                 'Biometric record not found',
@@ -58,6 +58,7 @@ const VerifierScreen = ({navigation}) => {
      
     }
 
+
     useEffect(() => {
       (async () => {
         try {
@@ -78,6 +79,21 @@ const VerifierScreen = ({navigation}) => {
         // ])  
       })(); 
     },[scanned]);
+
+    useEffect(() => {
+      (async () => {
+        try {
+          const temp =await getCredentialsObject();
+          // console.log("HERE EFFECT")
+          // console.log(temp);
+          if(temp){
+            setCredentialShareHistory(temp.shareHistory);
+          }
+        } catch(e) {
+          console.log(e);
+        } 
+      })(); 
+    },[]);
 
     const getUserDID = async ()=>{
 
@@ -153,11 +169,19 @@ const VerifierScreen = ({navigation}) => {
           Type: currentCredential.Type,
           CredentialDID: currentCredential.CredentialDID,
           Access: false,
+          RecieverName: currentCredential.RecieverName, 
         }
         setCurrentCredential(temp);
         const tempSharedHistory = credentialShareHistory;
         tempSharedHistory[currentCredentialIndex]= temp;
         setCredentialShareHistory(tempSharedHistory);
+        const historyObject = {
+          shareHistory: tempSharedHistory
+        }
+        const jsonValue = JSON.stringify(historyObject);
+        await AsyncStorage.setItem('ShareHistory', jsonValue);
+        // console.log(historyObject);
+        // console.log()
         alert("Access Successfully Revoked!");
         // credentialShareHistory
       }else{
@@ -196,7 +220,7 @@ const VerifierScreen = ({navigation}) => {
         <Dialog.Container visible={visible} onBackdropPress={handleCancel}>
             <Dialog.Title>{currentCredential.Type}</Dialog.Title>
             <Dialog.Description>
-              The credential {currentCredential.Type} is shared with {currentCredential.Reciever}
+              The credential {currentCredential.Type} is shared with {currentCredential.RecieverName}
               {'\n'}
               {'\n'}
               Do you want to revoke access to this Credential? You cannot undo this action.
@@ -206,15 +230,18 @@ const VerifierScreen = ({navigation}) => {
         </Dialog.Container>
         <Text style = {styles.textHeadingStyle}>Credential Share History</Text>          
         {
+          // credentialShareHistory ? 
           credentialShareHistory.map((item, i) => (
             <ListItem key={i} onPress={()=>{onlistItemPress(item,i)}} bottomDivider style={styles.listItemStyle}>
               <Avatar source={require('./../../assets/documentIcon.png')} />
               <ListItem.Content>
                 <ListItem.Title>Type: {item.Type}</ListItem.Title>
-                <ListItem.Subtitle style={styles.subtextStyle}>Reciever: {item.Reciever}</ListItem.Subtitle>
+                <ListItem.Subtitle style={styles.subtextStyle}>Reciever Name: {item.RecieverName}</ListItem.Subtitle>
+                <ListItem.Subtitle style={styles.subtextStyle}>Reciever DID: {item.Reciever}</ListItem.Subtitle>
               </ListItem.Content>
             </ListItem>
           ))
+        // : null
         }
       </View>
     );

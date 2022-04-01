@@ -8,7 +8,7 @@ import CredentialView from '../components/CredentialView';
 const DIDDisplayScreen = ({navigation}) => {
     
     const [data, setData] = useState({});
-  
+    const [name, setName] = useState("");
     useEffect(() => {
       
       const type = navigation.state.params.type;
@@ -16,6 +16,7 @@ const DIDDisplayScreen = ({navigation}) => {
           AsyncStorage.getItem('DID_Document').then(async (res)=>{
             if(res){
               const temp = JSON.parse(res);
+              setName(await AsyncStorage.getItem('Name'));
               // var result= visit(temp,null);
               // const YAML = require('json-to-pretty-yaml');
               // const data = YAML.stringify(temp);
@@ -59,6 +60,8 @@ const DIDDisplayScreen = ({navigation}) => {
                 />  */}
                 <Text />
                 <Text style={styles.title}>DID: {data.did}</Text>
+                <Text />
+                <Text style={styles.title}>Name: {name}</Text>
                 <Text />
                 <Text style={styles.title}>Key:</Text>
                 <Text />

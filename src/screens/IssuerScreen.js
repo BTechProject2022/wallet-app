@@ -122,6 +122,7 @@ const IssuerScreen = ({navigation}) => {
               <Avatar source={require('./../../assets/documentIcon.png')} />
               <ListItem.Content>
                 <ListItem.Title>{l.type}</ListItem.Title>
+                <ListItem.Subtitle>Issued By: {l.issuerName}</ListItem.Subtitle>
                 <ListItem.Subtitle>{l.issuanceDate}</ListItem.Subtitle>
               </ListItem.Content>
             </ListItem>

@@ -6,17 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import visit from './../utils/ObjectIterator'
 import * as CryptoJS  from 'crypto-js';
 import { Avatar, Card, Title, Paragraph } from 'react-native-paper';
-// import { ScrollView } from 'react-native-gesture-handler';
-// import '../../shim'
-// import crypto from 'crypto'
-// import secp256k1 from 'react-native-secp256k1';
-// import * as secp from "noble-secp256k1";
-// import { RSA } from 'react-native-rsa-native';
-// import keypair from 'keypair';
-// import * as secp from "@noble/secp256k1";
-// import crypto from 'crypto';
-// import * as secp256k1 from '@transmute/did-key-secp256k1';
-// import DefaultImage from './../../assets/icon.png';
+import Dialog from "react-native-dialog";
 
 // const DEFAULT_IMAGE = Image.resolveAssetSource(DefaultImage).uri;
 
@@ -29,17 +19,12 @@ const HomeScreen = ({navigation}) => {
     const [did,setDid] = useState("");
     const [DID_Document,setDID_Document] = useState({});
     const [isBiometricSupported, setIsBiometricSupported] = React.useState(false);
+    const [visible, setVisible] = useState(false);
+    const [name, setName] = useState("");
+
 
     useEffect(() => {
 
-      // Encrypt
-      // var ciphertext = CryptoJS.AES.encrypt('my message', 'secret key 123').toString();
-      // console.log(ciphertext);
-      // // Decrypt
-      // var bytes  = CryptoJS.AES.decrypt(ciphertext, 'secret key 123');
-      // var originalText = bytes.toString(CryptoJS.enc.Utf8);
-
-      // console.log(originalText); // 'my message'
 
       (async () => {
         const compatible = await LocalAuthentication.hasHardwareAsync();
@@ -74,6 +59,13 @@ const HomeScreen = ({navigation}) => {
 
     const createDid =async () => {
         // API CALL HERE to Create DID
+
+        if(!name ||name ===""){
+          Alert.alert(
+            'Please enter a Name',
+          );
+          return;
+        }
         const LocalAuthenticationOptions = {
           promptMessage: "Confirm your identity",
           // disableDeviceFallback : true
@@ -85,12 +77,14 @@ const HomeScreen = ({navigation}) => {
 
                 const responseKey = await walletAPI.get(`/keyPair`);
                 const jsonValue = JSON.stringify(responseKey.data);
-                await AsyncStorage.setItem('Keys', jsonValue);   
+                await AsyncStorage.setItem('Keys', jsonValue);
+                await AsyncStorage.setItem('Name', name);      
                 // console.log(responseKey.data);
 
                 const resp = await walletAPI.post("/createDID",{
                   address: responseKey.data.Address,
                   publicKey : responseKey.data.PublicKey,
+                  name: name,
                 });
                 // console.log(resp.data.did);
                 // Call API TO CREATE THE DID
@@ -126,7 +120,7 @@ const HomeScreen = ({navigation}) => {
               );
             }
         })
-        
+        setVisible(false);
         // did= "some value";
     }
 
@@ -150,15 +144,6 @@ const HomeScreen = ({navigation}) => {
       AsyncStorage.getItem('DID_Document').then(async (res)=>{
         if(res){
           setDID_Document( JSON.parse(res));
-          // console.log(res);
-          // var result= visit(res,null);
-          // Alert.alert(
-          //   "Your DID Document is",
-          //   result,
-          //   [
-          //     { text: "OK", onPress: () => console.log("OK Pressed") }
-          //   ]
-          // );
           navigation.navigate("DIDDisplay",{ type:"DID_Document", id:0 })
 
         } else {
@@ -194,15 +179,39 @@ const HomeScreen = ({navigation}) => {
     return JSON.stringify(obj) === '{}';
   }
 
+  const handleCancel = () => {
+    setVisible(false);
+  };
+
+  const handleCreateDid = ()=>{
+    setVisible(true);
+  }
+
   // console.log(props)
   return (
     <ScrollView> 
+      <Dialog.Container visible={visible} onBackdropPress={handleCancel}>
+            <Dialog.Title>Create DID</Dialog.Title>
+            <Dialog.Description>
+              Please enter your name in order to create a DID
+              {'\n'}
+            </Dialog.Description>
+            <Dialog.Input 
+              placeholder="Full Name" 
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={name}
+              onChangeText= {newTerm => setName(newTerm)}
+            />
+            <Dialog.Button label="Cancel" onPress={handleCancel} />
+            <Dialog.Button label="Submit" onPress={createDid} />
+        </Dialog.Container>
       {isEmptyObject(key) ? 
         // <Button 
         // title="Create DID"
         // onPress={()=> {createDid()}}
         // />
-        <Card style={styles.cardStyle} onPress={()=> {createDid()}}>
+        <Card style={styles.cardStyle} onPress={()=> {handleCreateDid()}}>
         <Card.Cover style={styles.imageStyle}  source={require('./../../assets/cards/didIssue.png') } />
         <Card.Content>
           <Title>Get Did</Title>

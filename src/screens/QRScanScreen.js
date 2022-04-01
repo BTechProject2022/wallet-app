@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // import store from 'react-native-simple-store';
 import walletAPI from "./../api/walletAPI"
 import getCredential from "./../utils/GetCredential"
+import { off } from 'process';
 
 export default function QRScannerScreen({navigation}) {
 
@@ -46,7 +47,7 @@ export default function QRScannerScreen({navigation}) {
       const did =await getUserDID();
       const QRData = JSON.parse(data);
 
-      navigation.navigate("DocSelect",{ QRData:QRData, did:did})
+      navigation.navigate("DocSelect",{ QRData:QRData, did:did, setScanned:navigation.state.params.setScanned, scanned:navigation.state.params.scanned});
       // const apiEndPoint = QRData.apiLink;
       // const response = await fetch(apiEndPoint, {
       //   method: 'POST',
@@ -108,14 +109,27 @@ export default function QRScannerScreen({navigation}) {
             schemaDid: schemaDid
           })
         });
-        const json = await response.json();
-        // console.log(json);
-        const credential =await getCredential(json.credentialDid,did);
 
-        // const credential =await getCredential("did:cred:a91cbd9ac28ed4f6da798057695954732d0b33ff",did);
-        // credential.hash = "did:cred:a91cbd9ac28ed4f6da798057695954732d0b33ff";
-        credential.hash = json.credentialDid;
-        return credential;
+        // if(QRData.type==='Image'){
+
+        //   // Handle IMAGES HERE
+
+
+        // }else{
+          const json = await response.json();
+          // console.log(json);
+          const credential =await getCredential(json.credentialDid,did);
+          const issuerDID =  await walletAPI.get(`/getDIDDoc/${credential.issuerDID}`,);
+          // console.log(response.data);
+          const issuerName = (issuerDID.data.name);
+          // const credential =await getCredential("did:cred:a91cbd9ac28ed4f6da798057695954732d0b33ff",did);
+          // credential.hash = "did:cred:a91cbd9ac28ed4f6da798057695954732d0b33ff";
+          credential.hash = json.credentialDid;
+          credential.issuerName = issuerName;
+          return credential;
+        // }
+
+        
     }catch(error){
       console.log(error);
     }
@@ -178,11 +192,12 @@ export default function QRScannerScreen({navigation}) {
       var curr_credentials =await getCredentialsObject();
     //   console.log(curr_credentials);
       const temp = (data);
-      console.log(data);
+      // console.log(data);
       const value = {
         hash: temp.hash,
         type : temp.type[1],
         issuanceDate: temp.issuanceDate,
+        issuerName: temp.issuerName,
       }
       if(!checkCredential(value,curr_credentials)){
         // console.log("HERE1");

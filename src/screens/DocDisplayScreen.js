@@ -6,12 +6,13 @@ import visit from './../utils/ObjectIterator'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CredentialView from '../components/CredentialView';
 import getCredential from "./../utils/GetCredential"
+import walletAPI from "./../api/walletAPI"
 
 const DocDisplayScreen = ({navigation}) => {
     
     // var schema={};
     const [data, setData] = useState({});
-  
+    const [name, setName] = useState("");
     useEffect(() => {
       
       const type = navigation.state.params.type;
@@ -58,6 +59,11 @@ const DocDisplayScreen = ({navigation}) => {
         AsyncStorage.getItem('DID').then(async (res)=>{
           const credential = await getCredential(navigation.state.params.id,res);
           setData(credential);
+
+          const response =  await walletAPI.get(`/getDIDDoc/${credential.issuerDID}`,);
+          // console.log(response.data);
+          setName(response.data.name);
+
         });
       })();
       
@@ -80,6 +86,8 @@ const DocDisplayScreen = ({navigation}) => {
                 <Text style={styles.title}>Title: {data.type[1]}</Text>
                 <Text />
                 <Text style={styles.subTitle}>Issuer: {data.issuerDID}</Text>
+                <Text />
+                <Text style={styles.subTitle}>Issuer Name: {name}</Text>
                 <Text />
                 <CredentialView object={data}/>
               </View>
