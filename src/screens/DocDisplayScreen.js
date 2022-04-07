@@ -85,7 +85,7 @@ const DocDisplayScreen = ({navigation}) => {
               ? <View> 
                 <Text style={styles.title}>Title: {data.type[1]}</Text>
                 <Text />
-                <Text style={styles.subTitle}>Issuer: {data.issuerDID}</Text>
+                <Text style={styles.subTitle}>Issuer DID: {data.issuerDID}</Text>
                 <Text />
                 <Text style={styles.subTitle}>Issuer Name: {name}</Text>
                 <Text />

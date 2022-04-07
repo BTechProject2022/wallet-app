@@ -67,7 +67,7 @@ export default function QRScannerScreen({navigation}) {
       // const json = await response.json();
 
 
-      console.log("HERE");
+      // console.log("HERE");
     }
     
     

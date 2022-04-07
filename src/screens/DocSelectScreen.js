@@ -1,5 +1,5 @@
 import React, {useState,useEffect} from 'react';
-import { Text, StyleSheet, Button, View, TouchableOpacity,Alert,FlatList } from 'react-native';
+import { Text, StyleSheet, Button, View, TouchableOpacity,Alert,FlatList,ScrollView } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import walletAPI from "../api/walletAPI"
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -49,8 +49,8 @@ const DocSelectScreen = ({navigation}) => {
 
     const getCredentialsObject = async () => {
       try {
-        console.log("PARAMS");
-        console.log(navigation.state.params);
+        // console.log("PARAMS");
+        // console.log(navigation.state.params);
         const jsonValue = await AsyncStorage.getItem('Credentials')
         return jsonValue != null ? JSON.parse(jsonValue) : null
       } catch(e) {
@@ -65,7 +65,7 @@ const DocSelectScreen = ({navigation}) => {
         try {
           const temp =await getCredentialsObject();
           if(temp){
-            console.log(temp.credentials);
+            // console.log(temp.credentials);
             setVerifiableCredentials(temp.credentials);
           }
         } catch(e) {
@@ -102,7 +102,7 @@ const DocSelectScreen = ({navigation}) => {
         sign: resp.data.sign
       })
       // console.log(apiEndPoint);
-      console.log("HEERE");
+      // console.log("HEERE");
 
       const response = await fetch(apiEndPoint, {
         method: 'POST',
@@ -112,9 +112,9 @@ const DocSelectScreen = ({navigation}) => {
         },
         body: reqBody,
       });
-      console.log("HEERE2");
+      // console.log("HEERE11");
       const json = await response.json();
-      // console.log("name");
+      // console.log(json);
       if(!json.error){
         const history =await getHistoryObject();
 
@@ -127,8 +127,11 @@ const DocSelectScreen = ({navigation}) => {
         };
 
         if(history){
-           
-            if(checkCredential(value,history)){
+            // console.log("HISTORY EXISTS");
+            // console.log(value);
+            const notExists =await checkCredential(value,history);
+            // console.log(history);
+            if(notExists){
               history.shareHistory.push(value);
               const jsonValue = JSON.stringify(history);
               await AsyncStorage.setItem('ShareHistory', jsonValue);
@@ -145,21 +148,35 @@ const DocSelectScreen = ({navigation}) => {
       }else{
         alert(`Credential couldn't be shared`);
       }
+      alert(`Credential successfully shared`);
       navigation.state.params.setScanned(navigation.state.params.scanned+1);
       navigation.navigate("Verifier");
 
     }
 
-    const checkCredential = (value,curr_credentials) => {
+    const checkCredential =async (value,curr_credentials) => {
+      // console.log(value);
               if(curr_credentials){
                   for (var i = 0; i < curr_credentials.shareHistory.length; ++i) {
                   // curr_credentials.credentials.forEach(element => {
-                      if(curr_credentials.shareHistory[i].Reciever==value.Reciever && curr_credentials.shareHistory[i].Type==value.Type){
+                      if(curr_credentials.shareHistory[i].Reciever==value.Reciever && curr_credentials.shareHistory[i].Type==value.Type && curr_credentials.shareHistory[i].Access){
                           alert(`Credential ${value.Type} is already shared with ${value.RecieverName}`);
                           // navigation.navigate("Issuer");
                           // console.log("IN FOR LOOP");
                           return false;
                       }
+                      if(curr_credentials.shareHistory[i].Reciever==value.Reciever && curr_credentials.shareHistory[i].Type==value.Type 
+                        && !curr_credentials.shareHistory[i].Access){
+                          curr_credentials.shareHistory[i].Access= true;
+                          const jsonValue = JSON.stringify(curr_credentials);
+                          await AsyncStorage.setItem('ShareHistory', jsonValue);
+                          // alert(`Credential successfully shared`);
+                        // alert(`Credential ${value.Type} is already shared with ${value.RecieverName}`);
+                        // navigation.navigate("Issuer");
+                        // console.log("IN FOR LOOP");
+                          return false;
+                        
+                    }
                   }
                   return true;
               }else{

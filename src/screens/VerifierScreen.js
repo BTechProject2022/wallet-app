@@ -1,5 +1,5 @@
 import React, {useState,useEffect} from 'react';
-import { Text, StyleSheet, Button, View, TouchableOpacity,Alert,FlatList } from 'react-native';
+import { Text, StyleSheet, Button, View, TouchableOpacity,Alert,FlatList,ScrollView } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import walletAPI from "../api/walletAPI"
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -228,7 +228,8 @@ const VerifierScreen = ({navigation}) => {
             <Dialog.Button label="No" onPress={handleCancel} />
             <Dialog.Button label="Revoke Access" onPress={handleAccessRevoke} />
         </Dialog.Container>
-        <Text style = {styles.textHeadingStyle}>Credential Share History</Text>          
+        <Text style = {styles.textHeadingStyle}>Credential Share History</Text>
+        <ScrollView>        
         {
           // credentialShareHistory ? 
           credentialShareHistory.map((item, i) => (
@@ -243,6 +244,7 @@ const VerifierScreen = ({navigation}) => {
           ))
         // : null
         }
+        </ScrollView>  
       </View>
     );
 }

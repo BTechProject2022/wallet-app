@@ -19,9 +19,12 @@ const HomeScreen = ({navigation}) => {
     const [did,setDid] = useState("");
     const [DID_Document,setDID_Document] = useState({});
     const [isBiometricSupported, setIsBiometricSupported] = React.useState(false);
-    const [visible, setVisible] = useState(false);
+    const [visibleGetDidDialog, setVisibleGetDidDialog] = useState(false);
+    const [visibleExportDialog, setVisibleExportDialog] = useState(false);
     const [name, setName] = useState("");
-
+    const [visibleRestoreDidDialog, setVisibleRestoreDidDialog] = useState(false);
+    const [restoreAccount, setRestoreAccount] = useState([]);
+    const [exportPassword, setExportPassword] = useState([]);
 
     useEffect(() => {
 
@@ -57,6 +60,86 @@ const HomeScreen = ({navigation}) => {
 
     },[]);
 
+    const exportData =async () => {
+
+      if(exportPassword[0]!== exportPassword[1]){
+        Alert.alert("Password DO NOT MATCH");
+        return;
+      }
+
+
+      // KEYS
+      const keysString =await AsyncStorage.getItem('Keys');
+      const keys = keysString != null ? JSON.parse(keysString) : null
+
+      // NAME
+      const name =await AsyncStorage.getItem('Name');
+
+      // NAME
+      const did =await AsyncStorage.getItem('DID');
+
+      // DID Document
+      const didDocumentString = await AsyncStorage.getItem('DID_Document')
+      const didDocument = didDocumentString != null ? JSON.parse(didDocumentString) : null
+
+      // ISSUER
+      const issuerString = await AsyncStorage.getItem('Credentials')
+      const issuer = issuerString != null ? JSON.parse(issuerString) : null
+      
+      // VERIFIER
+      const verifierString = await AsyncStorage.getItem('ShareHistory')
+      const verifier = verifierString != null ? JSON.parse(verifierString) : null
+
+
+        // console.log(exportPassword);
+      const data = {
+        "keys": keys,
+        "name":name,
+        "did":did,
+        "did_document":didDocument,
+        "issued": issuer,
+        "shared": verifier,
+      }
+
+      
+      // Encrypt
+      const ciphertext = CryptoJS.AES.encrypt(JSON.stringify(data), exportPassword[0]).toString();
+      // console.log(ciphertext);
+      // Decrypt
+      // const resp = await walletAPI.get(`/exportAccount/`);
+      const resp = await walletAPI.post("/exportAccount",{
+        did: did,
+        data : ciphertext,
+      });
+
+      if(resp.status==200){
+        Alert.alert("Account successfully Backedup");
+        // setVisibleGetDidDialog(false);
+        setExportPassword(["",""]);
+        setVisibleExportDialog(false);
+        var decryptedData="";
+        try {
+          const respData = await walletAPI.get(`/importAccount/${did}`);
+          const value = respData.data.data;
+          // console.log(value);
+          const bytes  = CryptoJS.AES.decrypt(value, exportPassword[1]);
+
+          decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        }catch(e){
+          console.log(e);
+        }
+        
+        
+  
+        console.log(decryptedData); 
+
+      }else{
+        Alert.alert("Error backing up account");
+      }
+
+      // [{id: 1}, {id: 2}]
+    }
+
     const createDid =async () => {
         // API CALL HERE to Create DID
 
@@ -89,6 +172,13 @@ const HomeScreen = ({navigation}) => {
                 // console.log(resp.data.did);
                 // Call API TO CREATE THE DID
                 await AsyncStorage.setItem('DID', (resp.data.did));
+
+                const respDID_Doc = await walletAPI.get(`/getDIDDoc/${resp.data.did}`);
+                const value = respDID_Doc.data;
+                // console.log(resp.data);
+                // store the result in the async storage
+                const jsonValueDID_Doc = JSON.stringify(value)
+                await AsyncStorage.setItem('DID_Document', jsonValueDID_Doc)
                 // alert(resp.data.did);
                 Alert.alert(
                   "Your DID is",
@@ -99,6 +189,7 @@ const HomeScreen = ({navigation}) => {
                 );
                 setDid(resp.data.did);
                 setKey(responseKey.data);
+                setDID_Document( jsonValueDID_Doc); 
                 
               }catch(e){
                 console.log(e);
@@ -120,7 +211,8 @@ const HomeScreen = ({navigation}) => {
               );
             }
         })
-        setVisible(false);
+        setVisibleGetDidDialog(false);
+
         // did= "some value";
     }
 
@@ -174,23 +266,128 @@ const HomeScreen = ({navigation}) => {
       })
 
   }
+
+  const handleRestoreAccount =async ()=>{
+      if(restoreAccount[0]==="" || !restoreAccount[0]){
+        Alert.alert("Please enter a did");
+        return;
+      }
+
+      if(restoreAccount[1]==="" || !restoreAccount[1]){
+        Alert.alert("Please enter a password");
+        return;
+      }
+
+      var decryptedData="";
+      try {
+          const respData = await walletAPI.get(`/importAccount/${restoreAccount[0]}`);
+          const value = respData.data.data;
+          // console.log(value);
+          const bytes  = CryptoJS.AES.decrypt(value, restoreAccount[1]);
+
+          decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      }catch(e){
+          if(e.message==="Malformed UTF-8 data"){
+            Alert.alert("Incorrect Password")
+            // console.log("HERE");
+          }
+          console.log(e.message);
+      }
+
+      console.log(decryptedData);
+
+      const keyStringValue = JSON.stringify(decryptedData.keys);
+      await AsyncStorage.setItem('Keys', keyStringValue);
+      await AsyncStorage.setItem('Name', decryptedData.name);      
+      await AsyncStorage.setItem('DID', decryptedData.did);
+
+      const didDocStringValue = JSON.stringify(decryptedData.did_document);
+      await AsyncStorage.setItem('DID_Document', didDocStringValue);
+
+      // ISSUER
+      const issuerString = JSON.stringify(decryptedData.issued);
+      if(issuerString!=="" || !issuerString){
+        await AsyncStorage.setItem('Credentials',issuerString)
+      }
+            
+      // VERIFIER
+      const verifierString = JSON.stringify(decryptedData.issued);
+      if(verifierString!=="" || !verifierString){
+        await AsyncStorage.setItem('ShareHistory',verifierString)
+      }
+
+      setKey(decryptedData.keys);
+      setDid(decryptedData.did);
+      setDID_Document(decryptedData.did_document);
+      setVisibleRestoreDidDialog(false);
+      setRestoreAccount(["",""]);
+      Alert.alert("Account Successfuly Restored");
+
+  }
+
+  const toggleRestoreBackup =()=>{
+    setVisibleRestoreDidDialog(true);
+  }
+
+  const handleRestoreCancel = ()=>{
+    setRestoreAccount(["",""]);
+    setVisibleRestoreDidDialog(false);
+  }
     
   const isEmptyObject= (obj)=> {
     return JSON.stringify(obj) === '{}';
   }
 
   const handleCancel = () => {
-    setVisible(false);
+    setVisibleGetDidDialog(false);
+  };
+
+  const handleExportDialogCancel = () => {
+    setExportPassword(["",""]);
+    setVisibleExportDialog(false);
   };
 
   const handleCreateDid = ()=>{
-    setVisible(true);
+    setVisibleGetDidDialog(true);
+  }
+
+  const handleExport = ()=>{
+    // console.log("HERE");
+    setVisibleExportDialog(true);
+    // console.log(visibleExportDialog);
   }
 
   // console.log(props)
   return (
     <ScrollView> 
-      <Dialog.Container visible={visible} onBackdropPress={handleCancel}>
+
+      <Dialog.Container visible={visibleExportDialog} onBackdropPress={handleExportDialogCancel}>
+            <Dialog.Title>Export Data</Dialog.Title>
+            <Dialog.Description>
+              Please enter the password to encrypt your data with
+              {'\n'}
+            </Dialog.Description>
+            <Dialog.Input 
+              placeholder="Password" 
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={exportPassword[0]}
+              secureTextEntry={true}
+              onChangeText= {newTerm => setExportPassword([newTerm,exportPassword[1]])}
+            />
+             <Dialog.Input 
+              placeholder="Confirm Password" 
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={exportPassword[1]}
+              secureTextEntry={true}
+              onChangeText= {newTerm => setExportPassword([exportPassword[0],newTerm])}
+            />
+            <Dialog.Button label="Cancel" onPress={handleExportDialogCancel} />
+            <Dialog.Button label="Submit" onPress={exportData} />
+        </Dialog.Container>
+
+      <Dialog.Container visible={visibleGetDidDialog} onBackdropPress={handleCancel}>
             <Dialog.Title>Create DID</Dialog.Title>
             <Dialog.Description>
               Please enter your name in order to create a DID
@@ -206,11 +403,39 @@ const HomeScreen = ({navigation}) => {
             <Dialog.Button label="Cancel" onPress={handleCancel} />
             <Dialog.Button label="Submit" onPress={createDid} />
         </Dialog.Container>
+
+
+        <Dialog.Container visible={visibleRestoreDidDialog} onBackdropPress={handleRestoreCancel}>
+            <Dialog.Title>Restore Account</Dialog.Title>
+            <Dialog.Description>
+              Please enter your did and password to restore your account
+              {'\n'}
+            </Dialog.Description>
+            <Dialog.Input 
+              placeholder="DID" 
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={restoreAccount[0]}
+              onChangeText= {newTerm => setRestoreAccount([newTerm,restoreAccount[1]])}
+            />
+            <Dialog.Input 
+              placeholder="Password" 
+              autoCapitalize="none"
+              autoCorrect={false}
+              secureTextEntry={true}
+              value={restoreAccount[1]}
+              onChangeText= {newTerm => setRestoreAccount([restoreAccount[0],newTerm])}
+            />
+            <Dialog.Button label="Cancel" onPress={handleRestoreCancel} />
+            <Dialog.Button label="Submit" onPress={handleRestoreAccount} />
+        </Dialog.Container>
+        
       {isEmptyObject(key) ? 
         // <Button 
         // title="Create DID"
         // onPress={()=> {createDid()}}
         // />
+        <View>
         <Card style={styles.cardStyle} onPress={()=> {handleCreateDid()}}>
         <Card.Cover style={styles.imageStyle}  source={require('./../../assets/cards/didIssue.png') } />
         <Card.Content>
@@ -218,6 +443,15 @@ const HomeScreen = ({navigation}) => {
           <Paragraph>Issue a did and did document for youself which will help you identity yourself to others</Paragraph>
         </Card.Content>
       </Card>
+
+      <Card style={styles.cardStyle} onPress={()=> {toggleRestoreBackup()}}>
+        <Card.Cover style={styles.imageStyle}  source={require('./../../assets/cards/backup.png') } />
+        <Card.Content>
+          <Title>Restore Account</Title>
+          <Paragraph>Restore the previously backed up data including did and credentials on your phone</Paragraph>
+        </Card.Content>
+      </Card>
+      </View>
         : null
       }
     { !isEmptyObject(key) ? 
@@ -256,6 +490,14 @@ const HomeScreen = ({navigation}) => {
             <Title>Send Credential</Title>
             <Paragraph>Send credetial to the verifier by scanning the QR code present on the Verifier website and selecting the credential you want to share</Paragraph>
           </Card.Content>
+        </Card>
+
+        <Card style={styles.cardStyle} onPress={()=> {handleExport()}}>
+        <Card.Cover style={styles.imageStyle}  source={require('./../../assets/cards/backup.png') } />
+        <Card.Content>
+          <Title>Export Data</Title>
+          <Paragraph>Export the latest copy your password encrypted data onto the blockchain so that you can restore the data in a new device</Paragraph>
+        </Card.Content>
         </Card>
       </View>
       : null
