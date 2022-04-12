@@ -94,7 +94,7 @@ export default function QRScannerScreen({navigation}) {
     const did =await getUserDID();
     // console.log(QRData);
      const apiEndPoint = QRData.url;
-     const studentId= QRData.studentId;
+     const userId= QRData.userId;
      const schemaDid= QRData.schemaDid;
      try{
         const response = await fetch(apiEndPoint, {
@@ -105,7 +105,7 @@ export default function QRScannerScreen({navigation}) {
           },
           body: JSON.stringify({
             userDid: did,
-            studentId: studentId,
+            userId: userId,
             schemaDid: schemaDid
           })
         });
