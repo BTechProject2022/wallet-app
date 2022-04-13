@@ -29,7 +29,7 @@ export default function QRScannerScreen({navigation}) {
 
   const handleBarCodeScanned =async ({ type, data }) => {
     setScanned(true);
-    // console.log("HERE");
+    console.log("HERE");
 
     if(navigation.state.params.type==='issuer'){
       const credential =await callApiForCredentail(JSON.parse(data));

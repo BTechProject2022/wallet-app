@@ -5,7 +5,7 @@ import walletAPI from "./../api/walletAPI"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import visit from './../utils/ObjectIterator'
 import * as CryptoJS  from 'crypto-js';
-import { Avatar, Card, Title, Paragraph } from 'react-native-paper';
+import { Avatar, Card, Title, Paragraph ,TextInput } from 'react-native-paper';
 import Dialog from "react-native-dialog";
 
 // const DEFAULT_IMAGE = Image.resolveAssetSource(DefaultImage).uri;
@@ -25,6 +25,7 @@ const HomeScreen = ({navigation}) => {
     const [visibleRestoreDidDialog, setVisibleRestoreDidDialog] = useState(false);
     const [restoreAccount, setRestoreAccount] = useState([]);
     const [exportPassword, setExportPassword] = useState([]);
+    const [secure, setSecure] = useState(true);
 
     useEffect(() => {
 
@@ -311,7 +312,7 @@ const HomeScreen = ({navigation}) => {
       }
             
       // VERIFIER
-      const verifierString = JSON.stringify(decryptedData.issued);
+      const verifierString = JSON.stringify(decryptedData.shared);
       if(verifierString!=="" || !verifierString){
         await AsyncStorage.setItem('ShareHistory',verifierString)
       }
@@ -372,9 +373,22 @@ const HomeScreen = ({navigation}) => {
               autoCapitalize="none"
               autoCorrect={false}
               value={exportPassword[0]}
-              secureTextEntry={true}
+              secureTextEntry={secure}
               onChangeText= {newTerm => setExportPassword([newTerm,exportPassword[1]])}
+              // style={{ marginTop: 20 }}
             />
+           
+            {/* {
+              secure &&
+              <Icon style={{ paddingRight: 15, }}
+              name={secure ? "eye" : 'eye-slash'}
+              size={20} color='gray' 
+              onPress={() => setSecure(!secure)} />
+            }
+            {
+              !secure &&
+              <View style={{ paddingRight: 15, width: 30, height: 10 }} />
+            }  */}
              <Dialog.Input 
               placeholder="Confirm Password" 
               autoCapitalize="none"
